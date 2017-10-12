@@ -42,10 +42,10 @@ Build Process
    # Checkout the branch or tag you would like to build
    #
    # to checkout a branch
-     $ git checkout <branch>
+   $ git checkout <branch>
 
    # to checkout a tag
-     $ git checkout tags/<tag>
+   $ git checkout tags/<tag>
 
 2. Execute the following commands to build Apache Atlas
 
@@ -57,7 +57,7 @@ Build Process
    # such tests.
    #
    # if you see test failures, please run the following command:
-      $ mvn clean -DskipTests install
+   $ mvn clean -DskipTests install
 
    $ mvn clean package -Pdist
 
