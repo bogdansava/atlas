@@ -88,7 +88,7 @@
                 <groupId>com.github.eirslett</groupId>
                 <artifactId>frontend-maven-plugin</artifactId>
                 <executions>
-                    <execution>
+			<!--                    <execution>
                         <id>install node and npm</id>
                         <goals>
                             <goal>install-node-and-npm</goal>
@@ -96,9 +96,8 @@
                         <configuration>
                             <nodeVersion>${node-for-v2.version}</nodeVersion>
 			    <npmVersion>3.8.5</npmVersion>
-			    <downloadRoot>http://ha.cd.europe.intranet/</downloadRoot>
                         </configuration>
-                    </execution>
+		    </execution> -->
                     <execution>
                         <id>npm install</id>
                         <goals>
