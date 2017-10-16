@@ -681,6 +681,7 @@
         <module>build-tools</module>
     </modules>
 
+<!--
     <repositories>
         <repository>
             <id>central</id>
@@ -729,6 +730,7 @@
             <url>http://repo.typesafe.com/typesafe/releases/</url>
         </repository>
     </repositories>
+-->
 
     <dependencyManagement>
         <dependencies>
