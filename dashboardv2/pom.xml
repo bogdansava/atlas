@@ -96,7 +96,7 @@
                         <configuration>
                             <nodeVersion>${node-for-v2.version}</nodeVersion>
 			    <npmVersion>3.8.5</npmVersion>
-			    <downloadRoot>https://artifactory.ing.net/artifactory/api/npm/releases_npm_all</downloadRoot>
+			    <downloadRoot>https://artifactory.ing.net/artifactory/api/npm/releases_npm_all/</downloadRoot>
                         </configuration>
                     </execution>
                     <execution>
