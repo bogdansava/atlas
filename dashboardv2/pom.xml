@@ -103,7 +103,8 @@
                         <goals>
                             <goal>npm</goal>
                         </goals>
-                        <configuration>
+			<configuration>
+   	                    <workingDirectory>${basedir}</workingDirectory>
                             <arguments>install</arguments>
                         </configuration>
                     </execution>
