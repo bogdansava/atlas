@@ -96,7 +96,7 @@
                         <configuration>
                             <nodeVersion>${node-for-v2.version}</nodeVersion>
 			    <npmVersion>3.8.5</npmVersion>
-			    <downloadRoot>https://artifactory.ing.net/artifactory/thirdparty_mvn_vdc/@types/node/</downloadRoot>
+			    <downloadRoot>https://${env.jenkinsuser}:${env.jenkinspass}@artifactory.ing.net/artifactory/thirdparty_mvn_vdc/@types/node/</downloadRoot>
 		    </configuration>
 		    </execution> 
                     <execution>
