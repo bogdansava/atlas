@@ -106,10 +106,7 @@
                         </goals>
 			<configuration>
 				<!-- <workingDirectory>${basedir}</workingDirectory> -->
-				<arguments>
-					<argument>install --registry=https://artifactory.ing.net/artifactory/api/npm/releases_npm_all/</argument>
-					<argument>strict-ssl=false</argument>
-				</arguments>
+				<arguments>install --registry=https://artifactory.ing.net/artifactory/api/npm/releases_npm_all/ strict-ssl=false</arguments>
                           </configuration>
                     </execution>
                     <execution>
