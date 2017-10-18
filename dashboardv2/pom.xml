@@ -108,7 +108,7 @@
 				<!-- <workingDirectory>${basedir}</workingDirectory> -->
 				<arguments>
 					<argument>install --registry=https://artifactory.ing.net/artifactory/api/npm/releases_npm_all/</argument>
-					<argument>strict-ssl=false<argument>
+					<argument>strict-ssl=false</argument>
 				</arguments>
                           </configuration>
                     </execution>
