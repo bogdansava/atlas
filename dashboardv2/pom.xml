@@ -106,9 +106,8 @@
                         </goals>
 			<configuration>
 				<!-- <workingDirectory>${basedir}</workingDirectory> -->
-			  <arguments>npm config set registry "https://artifactory.ing.net/artifactory/api/npm/releases_npm_all/"  <\arguments>
-                          <arguments>install</arguments>
-                        </configuration>
+				<arguments>install --registry https://artifactory.ing.net/artifactory/api/npm/releases_npm_all/</arguments>
+                          </configuration>
                     </execution>
                     <execution>
                         <id>grunt dist</id>
