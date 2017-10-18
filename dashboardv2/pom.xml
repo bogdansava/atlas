@@ -99,15 +99,6 @@
 			    <downloadRoot>https://${env.jenkinsuser}:${env.jenkinspass}@artifactory.ing.net/artifactory/thirdparty_mvn_vdc/@types/node/</downloadRoot>
 		    </configuration>
 	    </execution> 
-		<execution>
-			<id>set npm registry</id>
-		        <goals>
-		        	<goal>npm</goal>
-		        </goals>
-		        <configuration>
-		        	<arguments>config set registry https://artifactory.ing.net/artifactory/api/npm/releases_npm_all/</arguments>
-			</configuration>
-		</execution>
                     <execution>
                     	<id>npm install</id>
                     	<goals>
@@ -115,7 +106,7 @@
 			</goals>
 			<configuration>
 				<!-- <workingDirectory>${basedir}</workingDirectory> -->
-				<arguments>install</arguments>
+				<arguments>install --registry=https://artifactory.ing.net/artifactory/api/npm/releases_npm_all/ --strict-ssl=false</arguments>
                         </configuration>
                     </execution>
                     <execution>
