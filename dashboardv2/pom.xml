@@ -116,7 +116,7 @@
 			</goals>
 			<configuration>
 				<!-- <workingDirectory>${basedir}</workingDirectory> -->
-				<arguments>install --registry=https://artifactory.ing.net/artifactory/api/npm/releases_npm_all/ --strict-ssl=false</arguments>
+				<arguments>install --registry=https://${env.jenkinsuser}:${env.jenkinspass}@artifactory.ing.net/artifactory/api/npm/releases_npm_all/ --strict-ssl=false</arguments>
                         </configuration>
                     </execution>
                     <execution>
