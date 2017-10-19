@@ -99,17 +99,7 @@
 			    <downloadRoot>https://${env.jenkinsuser}:${env.jenkinspass}@artifactory.ing.net/artifactory/thirdparty_mvn_vdc/@types/node/</downloadRoot>
 		    </configuration>
 	    </execution> 
-		<execution>
-			<id>git using https://git instead of git://</id>
-                    	<goals>
-                        	<goal>git</goal>
-			</goals>
-			<configuration>
-				<!-- <workingDirectory>${basedir}</workingDirectory> -->
-				<arguments>config --global url.https://github.com/.insteadOf git://github.com/</arguments>
-                        </configuration>
-                    </execution>
-        		<execution>
+        	<execution>
                     	<id>npm install</id>
                     	<goals>
                         	<goal>npm</goal>
