@@ -59,6 +59,7 @@
                 <packages.to.exclude>WEB-INF/lib/je-*.jar</packages.to.exclude>
             </properties>
         </profile>
+
         <profile>
             <id>Windows</id>
             <activation>
@@ -70,45 +71,7 @@
                 <log4j.configuration.url>file:/${project.build.directory}/../../distro/src/conf/atlas-log4j.xml</log4j.configuration.url>
             </properties>
         </profile>
-        <profile>
-            <id>titan1</id>
-            <!-- remove conflicting lucene/titan versions from catalog when using titan 1 -->
-            <dependencyManagement>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.apache.atlas</groupId>
-                        <artifactId>atlas-catalog</artifactId>
-                        <version>${project.version}</version>
-                        <exclusions>
-                            <exclusion>
-                                <groupId>com.thinkaurelius.titan</groupId>
-                                <artifactId>titan-core</artifactId>
-                            </exclusion>
-                            <exclusion>
-                                <groupId>org.apache.lucene</groupId>
-                                <artifactId>lucene-core</artifactId>
-                            </exclusion>
-                            <exclusion>
-                                <groupId>org.apache.lucene</groupId>
-                                <artifactId>lucene-queryparser</artifactId>
-                            </exclusion>
-                            <exclusion>
-                                <groupId>org.apache.lucene</groupId>
-                                <artifactId>lucene-analyzers-common</artifactId>
-                            </exclusion>
-                        </exclusions>
-                    </dependency>
-                </dependencies>
-            </dependencyManagement>
 
-            <dependencies>
-                <dependency>
-                    <groupId>org.apache.atlas</groupId>
-                    <artifactId>atlas-catalog</artifactId>
-                    <scope>provided</scope>
-                </dependency>
-            </dependencies>
-        </profile>
     </profiles>
 
     <dependencies>
@@ -117,6 +80,7 @@
             <artifactId>atlas-graphdb-impls</artifactId>
             <type>pom</type>
         </dependency>
+
         <dependency>
             <groupId>org.apache.atlas</groupId>
             <artifactId>atlas-common</artifactId>
@@ -152,15 +116,16 @@
             <groupId>org.apache.atlas</groupId>
             <artifactId>atlas-notification</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.apache.atlas</groupId>
             <artifactId>atlas-intg</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
         </dependency>
-
 
         <dependency>
             <groupId>org.apache.hadoop</groupId>
@@ -170,11 +135,6 @@
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-hdfs</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.atlas</groupId>
-            <artifactId>atlas-catalog</artifactId>
         </dependency>
 
         <!-- Zookeeper, curator -->
@@ -434,6 +394,7 @@
             <classifier>tests</classifier>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.apache.atlas</groupId>
             <artifactId>atlas-intg</artifactId>
@@ -552,7 +513,6 @@
                 </configuration>
             </plugin>
 
-        <!-- Running unit tests in pre-integration-test phase after war is built -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -561,41 +521,73 @@
                         <user.dir>${project.basedir}</user.dir>
                         <projectBaseDir>${project.basedir}/..</projectBaseDir>
                     </systemProperties>
-                    <!--<skipTests>true</skipTests> -->
                     <forkMode>always</forkMode>
                     <redirectTestOutputToFile>true</redirectTestOutputToFile>
                     <argLine>-Djava.awt.headless=true -Dproject.version=${project.version}
                         -Dhadoop.tmp.dir=${project.build.directory}/tmp-hadoop-${user.name}
-                        -Xmx1024m -XX:MaxPermSize=512m
+                        -Xmx1024m
                     </argLine>
-                    <excludes>
-                        <exclude>**/*Base*</exclude>
-                    </excludes>
                 </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.apache.maven.surefire</groupId>
-                        <artifactId>surefire-testng</artifactId>
-                        <version>2.18.1</version>
-                    </dependency>
-                </dependencies>
                 <executions>
+                    <!-- Needed for explicit separation of UTs, SSL/Kerberos/Secure server tests and ITs-->
                     <execution>
                         <id>default-test</id>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </execution>
+
+                    <!-- Unit tests don't rely of WAR being built and don't interact with real server -->
+                    <execution>
+                        <id>unit-tests</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                        <configuration>
+                            <includes>
+                                <include>**/*Test.java</include>
+                            </includes>
+                            <excludes>
+                                <exclude>**/*SSL*.java</exclude>
+                                <exclude>**/*Kerberos*.java</exclude>
+                                <exclude>**/*Base*.java</exclude>
+                                <exclude>**/*Secure*.java</exclude>
+                                <exclude>**/*Server*.java</exclude>
+                                <exclude>**/*$*.java</exclude>
+                            </excludes>
+                        </configuration>
+                    </execution>
+
+                    <!-- Secure tests rely on the generated WAR and (may) start atlas server for tests -->
+                    <!-- Eventually all these server interaction tests need to move to IT phase -->
+                    <execution>
+                        <id>secure-tests</id>
                         <phase>pre-integration-test</phase>
                         <goals>
                             <goal>test</goal>
                         </goals>
+                        <configuration>
+                            <includes>
+                                <include>**/*SSL*Test.java</include>
+                                <include>**/*Kerberos*Test.java</include>
+                                <include>**/*Secure*Test.java</include>
+                                <include>**/*Server*Test.java</include>
+                                <include>**/*$*.java</include>
+                            </includes>
+                            <excludes>
+                                <exclude>**/*Base*.java</exclude>
+                            </excludes>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
-
 
             <plugin>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-maven-plugin</artifactId>
                 <configuration>
-                    <skip>${skipTests}</skip>
+                    <skip>${skipITs}</skip>
                     <!--only skip int tests -->
                     <httpConnector>
                         <port>31000</port>
@@ -645,10 +637,6 @@
                             <value>${project.build.directory}/data</value>
                         </systemProperty>
                         <systemProperty>
-                            <name>atlas.graphdb.backend</name>
-                            <value>${graphdb.backend.impl}</value>
-                        </systemProperty>
-                        <systemProperty>
                             <key>atlas.conf</key>
                             <value>${project.build.directory}/../../typesystem/target/test-classes</value>
                         </systemProperty>
@@ -693,10 +681,10 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${basedir}/target/models/1000-Hadoop</outputDirectory>
+                            <outputDirectory>${basedir}/target/models/</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>${basedir}/../addons/models/1000-Hadoop</directory>
+                                    <directory>${basedir}/../addons/models/</directory>
                                     <filtering>true</filtering>
                                 </resource>
                             </resources>

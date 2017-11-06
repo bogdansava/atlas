@@ -286,7 +286,7 @@ public final class EntityGraphRetriever {
         entity.setGuid(GraphHelper.getGuid(entityVertex));
         entity.setTypeName(GraphHelper.getTypeName(entityVertex));
         entity.setStatus(GraphHelper.getStatus(entityVertex));
-        entity.setVersion(GraphHelper.getVersion(entityVertex).longValue());
+        entity.setVersion(GraphHelper.getVersion(entityVertex));
 
         entity.setCreatedBy(GraphHelper.getCreatedByAsString(entityVertex));
         entity.setUpdatedBy(GraphHelper.getModifiedByAsString(entityVertex));
@@ -776,13 +776,13 @@ public final class EntityGraphRetriever {
         relationship.setCreateTime(new Date(GraphHelper.getCreatedTime(edge)));
         relationship.setUpdateTime(new Date(GraphHelper.getModifiedTime(edge)));
 
-        Integer version = GraphHelper.getVersion(edge);
+        Long version = GraphHelper.getVersion(edge);
 
         if (version == null) {
-            version = Integer.valueOf(1);
+            version = Long.valueOf(1L);
         }
 
-        relationship.setVersion(version.longValue());
+        relationship.setVersion(version);
         relationship.setStatus(GraphHelper.getEdgeStatus(edge));
 
         AtlasVertex end1Vertex = edge.getOutVertex();

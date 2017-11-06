@@ -73,6 +73,8 @@ define(['require', 'utils/Utils', 'marionette', 'backgrid', 'asBreadcrumbs', 'jq
             var isPopOverEl = getPopoverEl(e)
             if (!isPopOverEl) {
                 $('.popover').popover('hide');
+            } else if (isPopOverEl.$tip) {
+                $('.popover').not(isPopOverEl.$tip).popover('hide');
             }
         }
     });
@@ -84,6 +86,22 @@ define(['require', 'utils/Utils', 'marionette', 'backgrid', 'asBreadcrumbs', 'jq
     });
     $('body').on('keypress', 'input.number-input,.number-input .select2-search__field', function(e) {
         if (e.which != 8 && e.which != 0 && (e.which < 48 || e.which > 57)) {
+            return false;
+        }
+    });
+    $('body').on('keypress', 'input.number-input-negative,.number-input-negative .select2-search__field', function(e) {
+        if (e.which != 8 && e.which != 0 && (e.which < 48 || e.which > 57)) {
+            if (e.which == 45) {
+                if (this.value.length) {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+    });
+    $('body').on('keypress', 'input.number-input-exponential,.number-input-exponential .select2-search__field', function(e) {
+        if ((e.which != 8 && e.which != 0) && (e.which < 48 || e.which > 57) && (e.which != 69 && e.which != 101 && e.which != 43 && e.which != 45 && e.which != 46 && e.which != 190)) {
             return false;
         }
     });

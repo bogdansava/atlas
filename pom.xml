@@ -530,8 +530,7 @@
         <jetty.version>9.4.0.v20161208</jetty.version>
         <jetty.jsp.version>9.2.12.v20150709</jetty.jsp.version>
         <jersey.version>1.19</jersey.version>
-        <tinkerpop.version>2.6.0</tinkerpop.version>
-        <titan.version>0.5.4</titan.version>
+
         <hadoop.version>2.7.1</hadoop.version>
         <hbase.version>1.1.2</hbase.version>
         <solr.version>5.5.1</solr.version>
@@ -582,17 +581,26 @@
         <projectBaseDir>${project.basedir}</projectBaseDir>
         <jetty-maven-plugin.stopWait>10</jetty-maven-plugin.stopWait>
 
-        <titan.storage.backend>berkeleyje</titan.storage.backend>
-        <titan.index.backend>elasticsearch</titan.index.backend>
+        <!-- The following graph.{storage|index}.backend definitions dictate the backends for test
+             resources in typesystem and each of the graph profiles. They do not affect packaging
+             which is handled by defaults and profiles set in atlas-distro POM -->
+        <graph.storage.backend>berkeleyje</graph.storage.backend>
+        <graph.index.backend>elasticsearch</graph.index.backend>
+
         <entity.repository.impl>org.apache.atlas.repository.audit.InMemoryEntityAuditRepository</entity.repository.impl>
-        <graphdb.backend.impl>org.apache.atlas.repository.graphdb.titan0.Titan0GraphDatabase</graphdb.backend.impl>
+
+        <surefire.version>2.18.1</surefire.version>
+        <surefire.forkCount>2C</surefire.forkCount>
+        <failsafe.version>2.18.1</failsafe.version>
         <atlas.surefire.options></atlas.surefire.options>
 
         <aspectj.runtime.version>1.8.7</aspectj.runtime.version>
         <project.build.dashboardv2.gruntBuild>build-minify</project.build.dashboardv2.gruntBuild>
+        <testng.version>6.9.4</testng.version>
     </properties>
 
     <profiles>
+
         <!-- Turning on this profile affects only tests and does not affect packaging -->
         <profile>
             <id>distributed</id>
@@ -600,10 +608,10 @@
                 <activeByDefault>false</activeByDefault>
             </activation>
             <properties>
-                <titan.storage.backend>hbase</titan.storage.backend>
-                <titan.index.backend>solr</titan.index.backend>
+                <graph.storage.backend>hbase</graph.storage.backend>
+                <graph.index.backend>solr</graph.index.backend>
                 <solr.zk.address>localhost:9983</solr.zk.address>
-                <titan.storage.hostname>localhost</titan.storage.hostname>
+                <graph.storage.hostname>localhost</graph.storage.hostname>
                 <entity.repository.impl>org.apache.atlas.repository.audit.HBaseBasedAuditRepository
                 </entity.repository.impl>
             </properties>
@@ -618,38 +626,103 @@
                 <skipDocs>false</skipDocs>
             </properties>
         </profile>
+
+        <!-- Graph provider selection profiles
+        The following profiles are used to select the graph provider.
+        These profiles are mutually exclusive and should be activated by setting the system
+        property GRAPH-PROVIDER.
+        This can be optionally specified when invoking mvn:
+           e.g. mvn clean install -DGRAPH-PROVIDER=titan0
+        The settings for GRAPH-PROVIDER have the following effects:
+        * If GRAPH-PROVIDER is not specified, the graph-provider-default profile is activated.
+        * If GRAPH-PROVIDER is set to titan0, the graph-provider-titan0 profile is activated.
+        * If GRAPH-PROVIDER is set to titan1, the graph-provider-titan1 profile is activated.
+        * If GRAPH-PROVIDER is set to anything else, the build will fail.
+        Do not activate the graph-provider selection profiles using -P.
+        -->
+
         <profile>
-            <id>titan1</id>
+            <!-- Default profile, i.e. GRAPH-PROVIDER not set -->
+            <id>graph-provider-default</id>
+            <activation>
+                <property>
+                    <name>!GRAPH-PROVIDER</name>
+                </property>
+            </activation>
             <properties>
-                <graphdb.backend.impl>org.apache.atlas.repository.graphdb.titan1.Titan1GraphDatabase
-                </graphdb.backend.impl>
+                <!-- Define graph dependency type/version -->
+                <graphGroup>org.apache.atlas</graphGroup>
+                <graphArtifact>atlas-graphdb-titan0</graphArtifact>
+                <skipDocs>false</skipDocs>
+                <graphdb.backend.impl>org.apache.atlas.repository.graphdb.titan0.Titan0GraphDatabase</graphdb.backend.impl>
             </properties>
-            <dependencyManagement>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.apache.atlas</groupId>
-                        <artifactId>atlas-graphdb-impls</artifactId>
-                        <version>${project.version}</version>
-                        <type>pom</type>
-                        <exclusions>
-                            <exclusion>
-                                <groupId>org.apache.atlas</groupId>
-                                <artifactId>atlas-graphdb-titan0</artifactId>
-                            </exclusion>
-                        </exclusions>
-                    </dependency>
-                </dependencies>
-            </dependencyManagement>
         </profile>
+
+        <profile>
+            <!-- Activated by setting -DGRAPH-PROVIDER=titan0 -->
+            <id>graph-provider-titan0</id>
+            <activation>
+                <property>
+                    <name>GRAPH-PROVIDER</name>
+                    <value>titan0</value>
+                </property>
+            </activation>
+            <properties>
+                <!-- Define graph dependency type/version -->
+                <graphGroup>org.apache.atlas</graphGroup>
+                <graphArtifact>atlas-graphdb-titan0</graphArtifact>
+                <skipDocs>false</skipDocs>
+                <graphdb.backend.impl>org.apache.atlas.repository.graphdb.titan0.Titan0GraphDatabase</graphdb.backend.impl>
+            </properties>
+        </profile>
+
+        <profile>
+            <!-- Explicitly activate by setting -DGRAPH-PROVIDER=titan1 -->
+            <id>graph-provider-titan1</id>
+            <activation>
+                <property>
+                    <name>GRAPH-PROVIDER</name>
+                    <value>titan1</value>
+                </property>
+            </activation>
+            <properties>
+                <!-- Define graph dependency type/version -->
+                <graphGroup>org.apache.atlas</graphGroup>
+                <graphArtifact>atlas-graphdb-titan1</graphArtifact>
+                <skipDocs>false</skipDocs>
+                <graphdb.backend.impl>org.apache.atlas.repository.graphdb.titan1.Titan1GraphDatabase</graphdb.backend.impl>
+            </properties>
+        </profile>
+
+        <profile>
+            <!-- Explicitly activate by setting -DGRAPH-PROVIDER=janus -->
+            <id>graph-provider-janus</id>
+            <activation>
+                <property>
+                    <name>GRAPH-PROVIDER</name>
+                    <value>janus</value>
+                </property>
+            </activation>
+            <properties>
+                <!-- Define graph dependency type/version -->
+                <graphGroup>org.apache.atlas</graphGroup>
+                <graphArtifact>atlas-graphdb-janus</graphArtifact>
+                <skipDocs>false</skipDocs>
+                <graphdb.backend.impl>org.apache.atlas.repository.graphdb.janus.AtlasJanusGraphDatabase</graphdb.backend.impl>
+            </properties>
+        </profile>
+
         <profile>
             <id>skipMinify</id>
             <properties>
                 <project.build.dashboardv2.gruntBuild>build</project.build.dashboardv2.gruntBuild>
             </properties>
         </profile>
+
     </profiles>
 
     <modules>
+        <module>build-tools</module>
         <module>intg</module>
         <module>common</module>
         <module>typesystem</module>
@@ -661,7 +734,6 @@
         <module>shaded/hbase-server-shaded</module>
         <module>repository</module>
         <module>authorization</module>
-        <module>catalog</module>
         <module>dashboardv2</module>
         <module>webapp</module>
         <module>docs</module>
@@ -676,12 +748,11 @@
         <module>addons/sqoop-bridge</module>
         <module>addons/storm-bridge-shim</module>
         <module>addons/storm-bridge</module>
-
+	    <module>addons/hbase-bridge-shim</module>
+        <module>addons/hbase-bridge</module>
         <module>distro</module>
-        <module>build-tools</module>
     </modules>
 
-<!--
     <repositories>
         <repository>
             <id>central</id>
@@ -730,7 +801,6 @@
             <url>http://repo.typesafe.com/typesafe/releases/</url>
         </repository>
     </repositories>
--->
 
     <dependencyManagement>
         <dependencies>
@@ -740,6 +810,7 @@
                 <artifactId>guava</artifactId>
                 <version>${guava.version}</version>
             </dependency>
+
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-jsp</artifactId>
@@ -930,6 +1001,7 @@
                 <artifactId>zookeeper</artifactId>
                 <version>${zookeeper.version}</version>
             </dependency>
+
             <!-- commons -->
             <dependency>
                 <groupId>commons-configuration</groupId>
@@ -967,6 +1039,7 @@
                 <artifactId>javax.inject</artifactId>
                 <version>${javax-inject.version}</version>
             </dependency>
+
             <!-- utilities -->
             <dependency>
                 <groupId>org.skyscreamer</groupId>
@@ -1080,65 +1153,6 @@
                 <groupId>net.sourceforge.findbugs</groupId>
                 <artifactId>annotations</artifactId>
                 <version>1.3.2</version>
-            </dependency>
-
-            <!-- Graph DB -->
-            <dependency>
-                <groupId>com.tinkerpop.blueprints</groupId>
-                <artifactId>blueprints-core</artifactId>
-                <version>${tinkerpop.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.thinkaurelius.titan</groupId>
-                <artifactId>titan-core</artifactId>
-                <version>${titan.version}</version>
-                <exclusions>
-                    <!-- rexster does not work with servlet-api -->
-                    <exclusion>
-                        <groupId>com.tinkerpop.rexster</groupId>
-                        <artifactId>rexster-core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.tinkerpop.rexster</groupId>
-                        <artifactId>rexster-server</artifactId>
-                    </exclusion>
-                    <!-- asm 4.0 does not work with jersey asm 3.1 -->
-                    <exclusion>
-                        <groupId>com.tinkerpop</groupId>
-                        <artifactId>frames</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.esotericsoftware.reflectasm</groupId>
-                        <artifactId>reflectasm</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.ow2.asm</groupId>
-                        <artifactId>asm</artifactId>
-                    </exclusion>
-                    <exclusion> <!-- GPL license imported from ganglia -->
-                        <groupId>org.acplt</groupId>
-                        <artifactId>oncrpc</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-
-            <dependency>
-                <groupId>com.thinkaurelius.titan</groupId>
-                <artifactId>titan-berkeleyje</artifactId>
-                <version>${titan.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.thinkaurelius.titan</groupId>
-                <artifactId>titan-lucene</artifactId>
-                <version>${titan.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.thinkaurelius.titan</groupId>
-                <artifactId>titan-hbase</artifactId>
-                <version>${titan.version}</version>
             </dependency>
 
             <dependency>
@@ -1384,6 +1398,7 @@
                 <groupId>org.apache.atlas</groupId>
                 <artifactId>atlas-client</artifactId>
                 <version>${project.version}</version>
+                <type>pom</type>
             </dependency>
 
             <dependency>
@@ -1448,19 +1463,11 @@
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- use titan 0.5.4 by default -->
             <dependency>
                 <groupId>org.apache.atlas</groupId>
                 <artifactId>atlas-graphdb-impls</artifactId>
                 <version>${project.version}</version>
                 <type>pom</type>
-                <!-- exclusions for all of the non-titan0 implementations -->
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.apache.atlas</groupId>
-                        <artifactId>atlas-graphdb-titan1</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
 
             <dependency>
@@ -1495,12 +1502,6 @@
 
             <dependency>
                 <groupId>org.apache.atlas</groupId>
-                <artifactId>atlas-catalog</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.apache.atlas</groupId>
                 <artifactId>hive-bridge-shim</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -1522,6 +1523,19 @@
                 <artifactId>sqoop-bridge-shim</artifactId>
                 <version>${project.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>org.apache.atlas</groupId>
+                <artifactId>hbase-bridge</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.atlas</groupId>
+                <artifactId>hbase-bridge-shim</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
 
             <!--Scala dependencies-->
             <dependency>
@@ -1633,7 +1647,6 @@
                 <version>2.8.0</version>
             </dependency>
 
-
             <!-- supports simple auth handler -->
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
@@ -1654,10 +1667,11 @@
             </dependency>
 
             <!--Test dependencies-->
+
             <dependency>
                 <groupId>org.testng</groupId>
                 <artifactId>testng</artifactId>
-                <version>6.1.1</version>
+                <version>${testng.version}</version>
                 <scope>test</scope>
             </dependency>
 
@@ -1717,10 +1731,12 @@
                 <artifactId>zkclient</artifactId>
                 <version>${zkclient.version}</version>
             </dependency>
+
         </dependencies>
     </dependencyManagement>
 
     <dependencies>
+
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
@@ -1735,11 +1751,13 @@
             <groupId>org.slf4j</groupId>
             <artifactId>jul-to-slf4j</artifactId>
         </dependency>
+
         <dependency>
             <groupId>cglib</groupId>
             <artifactId>cglib</artifactId>
             <version>2.2.2</version>
         </dependency>
+
     </dependencies>
 
     <build>
@@ -1783,7 +1801,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>2.3.2</version>
+                    <version>3.7.0</version>
                 </plugin>
 
                 <plugin>
@@ -1807,13 +1825,13 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.16</version>
+                    <version>${surefire.version}</version>
                 </plugin>
 
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-failsafe-plugin</artifactId>
-                    <version>2.18.1</version>
+                    <version>${failsafe.version}</version>
                 </plugin>
 
                 <plugin>
@@ -1871,6 +1889,7 @@
                     <version>2.7</version>
                     <configuration>
                         <encoding>UTF-8</encoding>
+                        <nonFilteredFileExtensions>zip</nonFilteredFileExtensions>
                     </configuration>
                 </plugin>
 
@@ -1917,7 +1936,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.1</version>
+                <version>3.7.0</version>
                 <configuration>
                     <source>1.7</source>
                     <target>1.7</target>
@@ -1936,7 +1955,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.18.1</version>
+                <version>${surefire.version}</version>
                 <configuration>
                     <systemProperties>
                         <user.dir>${project.basedir}</user.dir>
@@ -1944,12 +1963,12 @@
                         <log4j.configuration>atlas-log4j.xml</log4j.configuration>
                     </systemProperties>
                     <skipTests>${skipTests}</skipTests>
-                    <forkCount>2C</forkCount>
+                    <forkCount>${surefire.forkCount}</forkCount>
                     <reuseForks>false</reuseForks>
                     <redirectTestOutputToFile>true</redirectTestOutputToFile>
                     <argLine>-Djava.awt.headless=true -Dproject.version=${project.version}
                         -Dhadoop.tmp.dir="${project.build.directory}/tmp-hadoop-${user.name}"
-                        -Xmx1024m -XX:MaxPermSize=512m -Djava.net.preferIPv4Stack=true ${atlas.surefire.options}
+                        -Xmx1024m -Djava.net.preferIPv4Stack=true ${atlas.surefire.options}
                     </argLine>
                     <skip>${skipUTs}</skip>
                 </configuration>
@@ -1965,7 +1984,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <version>2.19.1</version>
+                <version>${failsafe.version}</version>
                 <configuration>
                     <systemPropertyVariables>
                         <projectBaseDir>${projectBaseDir}</projectBaseDir>
@@ -1975,7 +1994,7 @@
                     <redirectTestOutputToFile>true</redirectTestOutputToFile>
                     <argLine>-Djava.awt.headless=true -Dproject.version=${project.version}
                         -Dhadoop.tmp.dir="${project.build.directory}/tmp-hadoop-${user.name}"
-                        -Xmx1024m -XX:MaxPermSize=512m ${atlas.surefire.options}
+                        -Xmx1024m ${atlas.surefire.options}
                     </argLine>
                     <skip>${skipITs}</skip>
                     <reuseForks>false</reuseForks>
@@ -2121,7 +2140,7 @@
                     <dependency>
                         <groupId>org.apache.atlas</groupId>
                         <artifactId>atlas-buildtools</artifactId>
-                        <version>${project.version}</version>
+                        <version>1.0</version>
                     </dependency>
                 </dependencies>
                 <executions>

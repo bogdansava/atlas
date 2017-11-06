@@ -88,25 +88,23 @@
                 <groupId>com.github.eirslett</groupId>
                 <artifactId>frontend-maven-plugin</artifactId>
                 <executions>
-	            <execution>
+                    <execution>
                         <id>install node and npm</id>
                         <goals>
                             <goal>install-node-and-npm</goal>
                         </goals>
                         <configuration>
                             <nodeVersion>${node-for-v2.version}</nodeVersion>
-			    <npmVersion>3.8.5</npmVersion>
-			    <downloadRoot>https://${env.jenkinsuser}:${env.jenkinspass}@artifactory.ing.net/artifactory/thirdparty_mvn_vdc/@types/node/</downloadRoot>
-		    </configuration>
-	    </execution> 
-        	<execution>
-                    	<id>npm install</id>
-                    	<goals>
-                        	<goal>npm</goal>
-			</goals>
-			<configuration>
-				<!-- <workingDirectory>${basedir}</workingDirectory> -->
-				<arguments>install</arguments>
+                            <npmVersion>3.8.5</npmVersion>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>npm install</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>install</arguments>
                         </configuration>
                     </execution>
                     <execution>

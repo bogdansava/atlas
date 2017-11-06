@@ -44,9 +44,6 @@ define(['require',
             ui: {
                 tagClick: '[data-id="tagClick"]',
                 addTag: "[data-id='addTag']",
-                addTerm: '[data-id="addTerm"]',
-                showMoreLess: '[data-id="showMoreLess"]',
-                showMoreLessTerm: '[data-id="showMoreLessTerm"]',
                 addAssignTag: "[data-id='addAssignTag']",
                 checkDeletedEntity: "[data-id='checkDeletedEntity']"
             },
@@ -54,7 +51,6 @@ define(['require',
             events: function() {
                 var events = {};
                 events["click " + this.ui.addTag] = 'checkedValue';
-                events["click " + this.ui.addTerm] = 'checkedValue';
                 events["click " + this.ui.addAssignTag] = 'checkedValue';
                 events["click " + this.ui.tagClick] = function(e) {
                     if (e.target.nodeName.toLocaleLowerCase() == "i") {
@@ -66,15 +62,6 @@ define(['require',
                             mergeBrowserUrl: false,
                             trigger: true
                         });
-                    }
-                };
-                events["click " + this.ui.showMoreLessTerm] = function(e) {
-                    $(e.currentTarget).find('i').toggleClass('fa fa-angle-right fa fa-angle-up');
-                    $(e.currentTarget).parents('.searchTerm').find('div.termTableBreadcrumb>div.showHideDiv').toggleClass('hide');
-                    if ($(e.currentTarget).find('i').hasClass('fa-angle-right')) {
-                        $(e.currentTarget).find('span').text('Show More');
-                    } else {
-                        $(e.currentTarget).find('span').text('Show less');
                     }
                 };
                 events["click " + this.ui.checkDeletedEntity] = 'onCheckDeletedEntity';
@@ -106,14 +93,14 @@ define(['require',
                 this.bradCrumbList = [];
             },
             bindEvents: function() {
+                var that = this;
                 this.listenTo(this.schemaCollection, 'backgrid:selected', function(model, checked) {
+                    this.arr = [];
                     if (checked === true) {
                         model.set("isEnable", true);
                     } else {
                         model.set("isEnable", false);
                     }
-                    this.arr = [];
-                    var that = this;
                     this.schemaCollection.find(function(item) {
                         var obj = item.toJSON();
                         if (item.get('isEnable')) {
@@ -124,14 +111,8 @@ define(['require',
                         }
                     });
                     if (this.arr.length > 0) {
-                        if (Globals.taxonomy) {
-                            this.$('.multiSelectTerm').show();
-                        }
                         this.$('.multiSelectTag').show();
                     } else {
-                        if (Globals.taxonomy) {
-                            this.$('.multiSelectTerm').hide();
-                        }
                         this.$('.multiSelectTag').hide();
                     }
                 });
@@ -167,7 +148,7 @@ define(['require',
                 });
                 if (this.schemaCollection.length === 0 && this.deleteObj.length) {
                     this.ui.checkDeletedEntity.find("input").prop('checked', true);
-                    this.schemaCollection.fullCollection.reset(this.deleteObj, { silent: true });
+                    this.schemaCollection.fullCollection.reset(this.deleteObj);
                 }
                 if (this.activeObj.length === 0 && this.deleteObj.length === 0) {
                     this.ui.checkDeletedEntity.hide();
@@ -190,9 +171,7 @@ define(['require',
                     that.RSchemaTableLayoutView.show(new TableLayout(_.extend({}, that.commonTableOptions, {
                         columns: columns
                     })));
-                    that.$('.multiSelectTerm').hide();
                     that.$('.multiSelectTag').hide();
-                    that.renderBreadcrumb();
                     Utils.generatePopover({
                         el: that.$('[data-id="showMoreLess"]'),
                         contentClass: 'popover-tag',
@@ -203,15 +182,6 @@ define(['require',
                                 return $(this).find('.popup-tag').children().clone();
                             }
                         }
-                    });
-                });
-            },
-            renderBreadcrumb: function() {
-                var that = this;
-                _.each(this.bradCrumbList, function(object) {
-                    _.each(object.value, function(subObj) {
-                        var scopeObject = that.$('[dataterm-id="' + object.scopeId + '"]').find('[dataterm-name="' + subObj.name + '"] .liContent');
-                        CommonViewFunction.breadcrumbMaker({ urlList: subObj.valueUrl, scope: scopeObject });
                     });
                 });
             },
@@ -240,7 +210,7 @@ define(['require',
                                         if (key === "name" && model.get('guid')) {
                                             var nameHtml = '<a href="#!/detailPage/' + model.get('guid') + '">' + value + '</a>';
                                             if (model.get('status') && Enums.entityStateReadOnly[model.get('status')]) {
-                                                nameHtml += '<button type="button" title="Deleted" class="btn btn-atlasAction btn-atlas deleteBtn"><i class="fa fa-trash"></i></button>';
+                                                nameHtml += '<button type="button" title="Deleted" class="btn btn-action btn-md deleteBtn"><i class="fa fa-trash"></i></button>';
                                                 return '<div class="readOnly readOnlyLink">' + nameHtml + '</div>';
                                             } else {
                                                 return nameHtml;
@@ -270,31 +240,6 @@ define(['require',
                             }
                         })
                     };
-                    if (Globals.taxonomy) {
-                        col['terms'] = {
-                            label: "Terms",
-                            cell: "Html",
-                            editable: false,
-                            sortable: false,
-                            orderable: true,
-                            className: 'searchTerm',
-                            formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
-                                fromRaw: function(rawValue, model) {
-                                    var obj = model.toJSON();
-                                    var returnObject = CommonViewFunction.termTableBreadcrumbMaker(obj);
-                                    if (returnObject.object) {
-                                        that.bradCrumbList.push(returnObject.object);
-                                    }
-                                    if (obj.status && Enums.entityStateReadOnly[obj.status]) {
-                                        return '<div class="readOnly">' + returnObject.html + '</div>';
-                                    } else {
-                                        return returnObject.html;
-                                    }
-
-                                }
-                            })
-                        };
-                    }
                     return this.schemaCollection.constructor.getTableCols(col, this.schemaCollection);
                 }
 
@@ -304,28 +249,19 @@ define(['require',
                     e.stopPropagation();
                 }
                 var guid = "",
-                    that = this;
-                var multiSelectTag = $(e.currentTarget).hasClass('assignTag');
-                if (multiSelectTag) {
-                    if (this.arr && this.arr.length && multiSelectTag) {
-                        that.addTagModalView(guid, this.arr);
-                    } else {
-                        guid = that.$(e.currentTarget).data("guid");
-                        that.addTagModalView(guid);
-                    }
+                    that = this,
+                    isTagMultiSelect = $(e.currentTarget).hasClass('multiSelectTag');
+                if (isTagMultiSelect && this.arr && this.arr.length) {
+                    that.addTagModalView(guid, this.arr);
                 } else {
-                    if (this.arr && this.arr.length) {
-                        that.addTermModalView(guid, this.arr);
-                    } else {
-                        guid = that.$(e.currentTarget).data("guid");
-                        that.addTermModalView(guid);
-                    }
+                    guid = that.$(e.currentTarget).data("guid");
+                    that.addTagModalView(guid);
                 }
             },
             addTagModalView: function(guid, multiple) {
                 var that = this;
                 var tagList = that.schemaCollection.find({ 'guid': guid });
-                require(['views/tag/addTagModalView'], function(AddTagModalView) {
+                require(['views/tag/AddTagModalView'], function(AddTagModalView) {
                     var view = new AddTagModalView({
                         guid: guid,
                         multiple: multiple,
@@ -340,71 +276,40 @@ define(['require',
                         showLoader: that.showLoader.bind(that),
                         enumDefCollection: that.enumDefCollection
                     });
-                    // view.saveTagData = function() {
-                    //override saveTagData function 
-                    // }
-                });
-            },
-            addTermModalView: function(guid, multiple) {
-
-                var that = this;
-                require([
-                    'views/business_catalog/AddTermToEntityLayoutView',
-                ], function(AddTermToEntityLayoutView) {
-                    var view = new AddTermToEntityLayoutView({
-                        guid: guid,
-                        multiple: multiple,
-                        callback: function(termName) {
-                            that.fetchCollection();
-                            that.arr = [];
-                        },
-                        hideLoader: that.hideLoader.bind(that),
-                        showLoader: that.showLoader.bind(that)
-                    });
                 });
             },
             onClickTagCross: function(e) {
-                var tagName = $(e.target).data("name"),
+                var that = this,
+                    tagName = $(e.target).data("name"),
                     guid = $(e.target).data("guid"),
                     assetName = $(e.target).data("assetname"),
-                    tagOrTerm = $(e.target).data("type"),
-                    that = this;
-                if (tagOrTerm === "term") {
-                    var modal = CommonViewFunction.deleteTagModel({
-                        msg: "<div class='ellipsis'>Remove: " + "<b>" + _.escape(tagName) + "</b> assignment from" + " " + "<b>" + assetName + " ?</b></div>",
-                        titleMessage: Messages.removeTerm,
-                        buttonText: "Remove"
-                    });
-                } else if (tagOrTerm === "tag") {
-                    var modal = CommonViewFunction.deleteTagModel({
+                    modal = CommonViewFunction.deleteTagModel({
                         msg: "<div class='ellipsis'>Remove: " + "<b>" + _.escape(tagName) + "</b> assignment from" + " " + "<b>" + assetName + " ?</b></div>",
                         titleMessage: Messages.removeTag,
                         buttonText: "Remove"
                     });
-                }
+
                 if (modal) {
                     modal.on('ok', function() {
-                        that.deleteTagData(e, tagOrTerm);
+                        that.deleteTagData({
+                            'tagName': tagName,
+                            'guid': guid
+                        });
                     });
                     modal.on('closeModal', function() {
                         modal.trigger('cancel');
                     });
                 }
             },
-            deleteTagData: function(e, tagOrTerm) {
-                var that = this,
-                    tagName = $(e.target).data("name"),
-                    guid = $(e.target).data("guid");
-                CommonViewFunction.deleteTag({
-                    'tagName': tagName,
-                    'guid': guid,
-                    'tagOrTerm': tagOrTerm,
+            deleteTagData: function(options) {
+                var that = this;
+                CommonViewFunction.deleteTag(_.extend({}, options, {
                     showLoader: that.showLoader.bind(that),
                     hideLoader: that.hideLoader.bind(that),
                     callback: function() {
                         that.fetchCollection();
                     }
-                });
+                }));
             },
             onCheckDeletedEntity: function(e) {
                 if (e.target.checked) {
