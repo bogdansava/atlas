@@ -30,7 +30,7 @@
 
     <properties>
         <skipTests>true</skipTests>
-        <skipSite>false</skipSite>
+        <skipSite>true</skipSite>
     </properties>
 
     <reporting>
