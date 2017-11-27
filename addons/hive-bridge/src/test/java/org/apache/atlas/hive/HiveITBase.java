@@ -23,8 +23,8 @@ import org.apache.atlas.AtlasClient;
 import org.apache.atlas.hive.bridge.HiveMetaStoreBridge;
 import org.apache.atlas.hive.hook.HiveHookIT;
 import org.apache.atlas.hive.model.HiveDataTypes;
-import org.apache.atlas.typesystem.Referenceable;
-import org.apache.atlas.typesystem.persistence.Id;
+import org.apache.atlas.v1.model.instance.Referenceable;
+import org.apache.atlas.v1.model.instance.Id;
 import org.apache.atlas.utils.AuthenticationUtil;
 import org.apache.atlas.utils.ParamChecker;
 import org.apache.commons.configuration.Configuration;
@@ -155,7 +155,7 @@ public class HiveITBase {
 
     protected String assertEntityIsRegistered(final String typeName, final String property, final String value,
                                             final HiveHookIT.AssertPredicate assertPredicate) throws Exception {
-        waitFor(1000, new HiveHookIT.Predicate() {
+        waitFor(80000, new HiveHookIT.Predicate() {
             @Override
             public void evaluate() throws Exception {
                 Referenceable entity = atlasClient.getEntity(typeName, property, value);

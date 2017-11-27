@@ -17,7 +17,11 @@
  */
 package org.apache.atlas.web.integration;
 
-import com.google.common.collect.ImmutableSet;
+
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 import org.apache.atlas.AtlasServiceException;
 import org.apache.atlas.model.discovery.AtlasSearchResult;
 import org.apache.atlas.model.discovery.SearchParameters;
@@ -29,9 +33,6 @@ import org.apache.atlas.model.typedef.AtlasClassificationDef;
 import org.apache.atlas.model.typedef.AtlasTypesDef;
 import org.apache.atlas.type.AtlasTypeUtil;
 import org.apache.atlas.utils.TestResourceFileUtils;
-import org.codehaus.jackson.annotate.JsonAutoDetect;
-import org.codehaus.jackson.annotate.JsonIgnoreProperties;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -39,10 +40,12 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 
-import static org.codehaus.jackson.annotate.JsonAutoDetect.Visibility.NONE;
-import static org.codehaus.jackson.annotate.JsonAutoDetect.Visibility.PUBLIC_ONLY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.PUBLIC_ONLY;
+
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.fail;
@@ -61,7 +64,7 @@ public class BasicSearchIT extends BaseResourceIT {
 
         // Create a test tag
         if (!atlasClientV2.typeWithNameExists("fooTag")) {
-            AtlasClassificationDef testClassificationDef = AtlasTypeUtil.createTraitTypeDef("fooTag", "Test tag", "1.0", ImmutableSet.<String>of());
+            AtlasClassificationDef testClassificationDef = AtlasTypeUtil.createTraitTypeDef("fooTag", "Test tag", "1.0", Collections.<String>emptySet());
             AtlasTypesDef          typesDef              = new AtlasTypesDef();
             typesDef.getClassificationDefs().add(testClassificationDef);
             atlasClientV2.createAtlasTypeDefs(typesDef);

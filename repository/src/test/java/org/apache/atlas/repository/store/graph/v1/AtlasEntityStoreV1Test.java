@@ -22,7 +22,6 @@ import org.apache.atlas.AtlasErrorCode;
 import org.apache.atlas.AtlasException;
 import org.apache.atlas.TestModules;
 import org.apache.atlas.RequestContextV1;
-import org.apache.atlas.TestUtils;
 import org.apache.atlas.TestUtilsV2;
 import org.apache.atlas.exception.AtlasBaseException;
 import org.apache.atlas.model.instance.AtlasClassification;
@@ -45,7 +44,7 @@ import org.apache.atlas.repository.graph.AtlasGraphProvider;
 import org.apache.atlas.repository.graph.GraphBackedSearchIndexer;
 import org.apache.atlas.repository.store.bootstrap.AtlasTypeDefStoreInitializer;
 import org.apache.atlas.repository.store.graph.AtlasEntityStore;
-import org.apache.atlas.services.MetadataService;
+import org.apache.atlas.runner.LocalSolrRunner;
 import org.apache.atlas.store.AtlasTypeDefStore;
 import org.apache.atlas.type.AtlasArrayType;
 import org.apache.atlas.type.AtlasMapType;
@@ -72,12 +71,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.apache.atlas.TestUtils.COLUMNS_ATTR_NAME;
-import static org.apache.atlas.TestUtils.COLUMN_TYPE;
-import static org.apache.atlas.TestUtils.NAME;
-import static org.apache.atlas.TestUtils.randomString;
-import static org.apache.atlas.TestUtilsV2.STORAGE_DESC_TYPE;
+import static org.apache.atlas.TestUtilsV2.COLUMNS_ATTR_NAME;
+import static org.apache.atlas.TestUtilsV2.COLUMN_TYPE;
+import static org.apache.atlas.TestUtilsV2.NAME;
+import static org.apache.atlas.TestUtilsV2.randomString;
 import static org.apache.atlas.TestUtilsV2.TABLE_TYPE;
+import static org.apache.atlas.graph.GraphSandboxUtil.useLocalSolr;
 import static org.mockito.Mockito.mock;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -94,9 +93,6 @@ public class AtlasEntityStoreV1Test {
     AtlasTypeDefStore typeDefStore;
 
     AtlasEntityStore entityStore;
-
-    @Inject
-    MetadataService metadataService;
 
     @Inject
     DeleteHandlerV1 deleteHandler;
@@ -116,7 +112,6 @@ public class AtlasEntityStoreV1Test {
         RequestContextV1.clear();
         RequestContextV1.get().setUser(TestUtilsV2.TEST_USER);
 
-        metadataService = TestUtils.addSessionCleanupWrapper(metadataService);
         new GraphBackedSearchIndexer(typeRegistry);
 
         AtlasTypesDef[] testTypesDefs = new AtlasTypesDef[] { TestUtilsV2.defineDeptEmployeeTypes(),
@@ -145,8 +140,12 @@ public class AtlasEntityStoreV1Test {
     }
 
     @AfterClass
-    public void clear() {
+    public void clear() throws Exception {
         AtlasGraphProvider.cleanup();
+
+        if (useLocalSolr()) {
+            LocalSolrRunner.stop();
+        }
     }
 
     @BeforeTest
@@ -312,7 +311,7 @@ public class AtlasEntityStoreV1Test {
         AtlasEntity              tableEntity  = new AtlasEntity(tblEntity.getEntity());
         AtlasEntitiesWithExtInfo entitiesInfo = new AtlasEntitiesWithExtInfo(tableEntity);
         Map<String, AtlasStruct> partsMap     = new HashMap<>();
-        partsMap.put("part0", new AtlasStruct(TestUtils.PARTITION_STRUCT_TYPE, TestUtilsV2.NAME, "test"));
+        partsMap.put("part0", new AtlasStruct(TestUtilsV2.PARTITION_STRUCT_TYPE, TestUtilsV2.NAME, "test"));
 
         tableEntity.setAttribute("partitionsMap", partsMap);
 
@@ -326,7 +325,7 @@ public class AtlasEntityStoreV1Test {
         Assert.assertTrue(partsMap.get("part0").equals(((Map<String, AtlasStruct>) updatedTableDef1.getAttribute("partitionsMap")).get("part0")));
 
         //update map - add a map key
-        partsMap.put("part1", new AtlasStruct(TestUtils.PARTITION_STRUCT_TYPE, TestUtilsV2.NAME, "test1"));
+        partsMap.put("part1", new AtlasStruct(TestUtilsV2.PARTITION_STRUCT_TYPE, TestUtilsV2.NAME, "test1"));
         tableEntity.setAttribute("partitionsMap", partsMap);
 
         init();
@@ -341,7 +340,7 @@ public class AtlasEntityStoreV1Test {
 
         //update map - remove a key and add another key
         partsMap.remove("part0");
-        partsMap.put("part2", new AtlasStruct(TestUtils.PARTITION_STRUCT_TYPE, TestUtilsV2.NAME, "test2"));
+        partsMap.put("part2", new AtlasStruct(TestUtilsV2.PARTITION_STRUCT_TYPE, TestUtilsV2.NAME, "test2"));
         tableEntity.setAttribute("partitionsMap", partsMap);
 
         init();
@@ -383,7 +382,7 @@ public class AtlasEntityStoreV1Test {
         init();
         entityStore.createOrUpdate(new AtlasEntityStream(col0WithExtendedInfo), false);
 
-        AtlasEntity col1 = new AtlasEntity(TestUtils.COLUMN_TYPE, TestUtilsV2.NAME, "test2");
+        AtlasEntity col1 = new AtlasEntity(TestUtilsV2.COLUMN_TYPE, TestUtilsV2.NAME, "test2");
         col1.setAttribute("type", "string");
         col1.setAttribute("table", AtlasTypeUtil.getAtlasObjectId(tableEntity));
 
@@ -398,7 +397,7 @@ public class AtlasEntityStoreV1Test {
         columnsMap.put("col0", AtlasTypeUtil.getAtlasObjectId(col0));
         columnsMap.put("col1", AtlasTypeUtil.getAtlasObjectId(col1));
 
-        tableEntity.setAttribute(TestUtils.COLUMNS_MAP, columnsMap);
+        tableEntity.setAttribute(TestUtilsV2.COLUMNS_MAP, columnsMap);
 
         entitiesInfo.addReferredEntity(col0);
         entitiesInfo.addReferredEntity(col1);
@@ -412,7 +411,7 @@ public class AtlasEntityStoreV1Test {
         columnsMap.put("col0", AtlasTypeUtil.getAtlasObjectId(col1));
         columnsMap.put("col1", AtlasTypeUtil.getAtlasObjectId(col0));
 
-        tableEntity.setAttribute(TestUtils.COLUMNS_MAP, columnsMap);
+        tableEntity.setAttribute(TestUtilsV2.COLUMNS_MAP, columnsMap);
         init();
         response = entityStore.createOrUpdate(new AtlasEntityStream(entitiesInfo), false);
         AtlasEntityHeader tableDefinition6 = response.getFirstUpdatedEntityByTypeName(TABLE_TYPE);
@@ -431,7 +430,7 @@ public class AtlasEntityStoreV1Test {
         validateEntity(entitiesInfo, getEntityFromStore(tableDefinition7));
 
         //Clear state
-        tableEntity.setAttribute(TestUtils.COLUMNS_MAP, null);
+        tableEntity.setAttribute(TestUtilsV2.COLUMNS_MAP, null);
         init();
         response = entityStore.createOrUpdate(new AtlasEntityStream(entitiesInfo), false);
         AtlasEntityHeader tableDefinition8 = response.getFirstUpdatedEntityByTypeName(TABLE_TYPE);
@@ -481,7 +480,7 @@ public class AtlasEntityStoreV1Test {
         validateEntity(entitiesInfo, getEntityFromStore(updatedTable));
 
         //add a new element to array of struct
-        partitions.add(new AtlasStruct(TestUtils.PARTITION_STRUCT_TYPE, TestUtilsV2.NAME, "part3"));
+        partitions.add(new AtlasStruct(TestUtilsV2.PARTITION_STRUCT_TYPE, TestUtilsV2.NAME, "part3"));
         init();
         response = entityStore.createOrUpdate(new AtlasEntityStream(entitiesInfo), false);
         updatedTable = response.getFirstUpdatedEntityByTypeName(TABLE_TYPE);
@@ -503,7 +502,7 @@ public class AtlasEntityStoreV1Test {
 
 
         //add a repeated element to array of struct
-        partitions.add(new AtlasStruct(TestUtils.PARTITION_STRUCT_TYPE, TestUtilsV2.NAME, "part4"));
+        partitions.add(new AtlasStruct(TestUtilsV2.PARTITION_STRUCT_TYPE, TestUtilsV2.NAME, "part4"));
         init();
         response = entityStore.createOrUpdate(new AtlasEntityStream(entitiesInfo), false);
         updatedTable = response.getFirstUpdatedEntityByTypeName(TABLE_TYPE);
@@ -524,7 +523,7 @@ public class AtlasEntityStoreV1Test {
         AtlasEntity              tableEntity    = new AtlasEntity(tblEntity.getEntity());
         AtlasEntitiesWithExtInfo entitiesInfo   = new AtlasEntitiesWithExtInfo(tableEntity);
 
-        AtlasStruct serdeInstance = new AtlasStruct(TestUtils.SERDE_TYPE, TestUtilsV2.NAME, "serde1Name");
+        AtlasStruct serdeInstance = new AtlasStruct(TestUtilsV2.SERDE_TYPE, TestUtilsV2.NAME, "serde1Name");
         serdeInstance.setAttribute("serde", "test");
         serdeInstance.setAttribute("description", "testDesc");
         tableEntity.setAttribute("serde1", serdeInstance);
@@ -564,7 +563,7 @@ public class AtlasEntityStoreV1Test {
         init();
         Map<String, AtlasEntity> tableCloneMap = new HashMap<>();
         AtlasEntity tableClone = new AtlasEntity(tblEntity.getEntity());
-        tableClone.setAttribute("database", new AtlasObjectId(dbCreated.getGuid(), TestUtils.DATABASE_TYPE));
+        tableClone.setAttribute("database", new AtlasObjectId(dbCreated.getGuid(), TestUtilsV2.DATABASE_TYPE));
 
         tableCloneMap.put(dbCreated.getGuid(), databaseInstance);
         tableCloneMap.put(tableClone.getGuid(), tableClone);
@@ -628,7 +627,7 @@ public class AtlasEntityStoreV1Test {
     //TODO : Failing in typedef creation
     public void testSpecialCharacters() throws Exception {
         //Verify that type can be created with reserved characters in typename, attribute name
-        final String typeName = TestUtils.randomString(10);
+        final String typeName = TestUtilsV2.randomString(10);
         String strAttrName = randomStrWithReservedChars();
         String arrayAttrName = randomStrWithReservedChars();
         String mapAttrName = randomStrWithReservedChars();
@@ -670,7 +669,7 @@ public class AtlasEntityStoreV1Test {
         //Update required attribute
         Map<String, AtlasEntity> tableCloneMap = new HashMap<>();
         AtlasEntity tableEntity = new AtlasEntity(TABLE_TYPE);
-        tableEntity.setAttribute(TestUtilsV2.NAME, "table_" + TestUtils.randomString());
+        tableEntity.setAttribute(TestUtilsV2.NAME, "table_" + TestUtilsV2.randomString());
         tableCloneMap.put(tableEntity.getGuid(), tableEntity);
 
         entityStore.createOrUpdate(new InMemoryMapEntityStream(tableCloneMap), false);
@@ -684,7 +683,7 @@ public class AtlasEntityStoreV1Test {
         init();
 
         AtlasEntity dbEntity = new AtlasEntity(TestUtilsV2.DATABASE_TYPE);
-        dbEntity.setAttribute("name", TestUtils.randomString(10));
+        dbEntity.setAttribute("name", TestUtilsV2.randomString(10));
         dbEntity.setAttribute("description", "us db");
         dbEntity.setAttribute("isReplicated", false);
         dbEntity.setAttribute("created", "09081988");
@@ -730,7 +729,7 @@ public class AtlasEntityStoreV1Test {
 
         // create a new table type
         AtlasEntity tblEntity = new AtlasEntity(TABLE_TYPE);
-        tblEntity.setAttribute("name", TestUtils.randomString(10));
+        tblEntity.setAttribute("name", TestUtilsV2.randomString(10));
         tblEntity.setAttribute("type", "type");
         tblEntity.setAttribute("tableType", "MANAGED");
         tblEntity.setAttribute("database", AtlasTypeUtil.getAtlasObjectId(updatedDbEntity));

@@ -185,7 +185,8 @@ public class KafkaNotification extends AbstractNotification implements Service {
         Properties consumerProperties = getConsumerProperties(notificationType);
 
         List<NotificationConsumer<T>> consumers = new ArrayList<>();
-        AtlasKafkaConsumer kafkaConsumer = new AtlasKafkaConsumer(notificationType.getDeserializer(), getKafkaConsumer(consumerProperties,notificationType, autoCommitEnabled), autoCommitEnabled, pollTimeOutMs );
+        AtlasKafkaConsumer kafkaConsumer =new AtlasKafkaConsumer(notificationType, getKafkaConsumer(consumerProperties, notificationType, autoCommitEnabled), autoCommitEnabled, pollTimeOutMs);
+
         consumers.add(kafkaConsumer);
         return consumers;
     }

@@ -84,11 +84,12 @@
         <dependency>
             <groupId>org.apache.atlas</groupId>
             <artifactId>atlas-common</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.atlas</groupId>
-            <artifactId>atlas-typesystem</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -125,6 +126,12 @@
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.servlet</groupId>
+                    <artifactId>servlet-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -135,6 +142,12 @@
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-hdfs</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.servlet</groupId>
+                    <artifactId>servlet-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Zookeeper, curator -->
@@ -262,11 +275,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-jsp</artifactId>
         </dependency>
@@ -274,11 +282,6 @@
         <dependency>
             <groupId>org.glassfish</groupId>
             <artifactId>javax.el</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.codehaus.jackson</groupId>
-            <artifactId>jackson-core-asl</artifactId>
         </dependency>
 
         <dependency>
@@ -390,19 +393,12 @@
 
         <dependency>
             <groupId>org.apache.atlas</groupId>
-            <artifactId>atlas-typesystem</artifactId>
-            <classifier>tests</classifier>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.atlas</groupId>
             <artifactId>atlas-intg</artifactId>
             <classifier>tests</classifier>
             <scope>test</scope>
         </dependency>
 
-	    <dependency>
+        <dependency>
             <groupId>org.apache.atlas</groupId>
             <artifactId>atlas-repository</artifactId>
             <classifier>tests</classifier>
@@ -638,7 +634,7 @@
                         </systemProperty>
                         <systemProperty>
                             <key>atlas.conf</key>
-                            <value>${project.build.directory}/../../typesystem/target/test-classes</value>
+                            <value>${project.build.directory}/../../intg/target/test-classes</value>
                         </systemProperty>
                     </systemProperties>
                     <stopKey>atlas-stop</stopKey>
@@ -664,11 +660,6 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>net.alchim31.maven</groupId>
-                <artifactId>scala-maven-plugin</artifactId>
-                <version>3.2.0</version>
             </plugin>
            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -696,12 +687,13 @@
             <plugin>
                 <groupId>com.webcohesion.enunciate</groupId>
                 <artifactId>enunciate-maven-plugin</artifactId>
+                <version>${enunciate-maven-plugin.version}</version>
                 <configuration>
                     <configFile>${project.parent.basedir}/build-tools/src/main/resources/enunciate.xml</configFile>
                     <enunciateArtifactId/>
                     <docsDir>${project.build.directory}/api/v2/</docsDir>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                     <skipEnunciate>${skipEnunciate}</skipEnunciate>
                 </configuration>
             </plugin>

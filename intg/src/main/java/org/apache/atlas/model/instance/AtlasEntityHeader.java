@@ -17,6 +17,11 @@
  */
 package org.apache.atlas.model.instance;
 
+
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
@@ -29,13 +34,11 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 
 import org.apache.atlas.model.PList;
 import org.apache.atlas.model.SearchFilter.SortType;
+import org.apache.atlas.model.typedef.AtlasBaseTypeDef;
 import org.apache.atlas.model.typedef.AtlasEntityDef;
-import org.codehaus.jackson.annotate.JsonAutoDetect;
-import static org.codehaus.jackson.annotate.JsonAutoDetect.Visibility.PUBLIC_ONLY;
-import static org.codehaus.jackson.annotate.JsonAutoDetect.Visibility.NONE;
 
-import org.codehaus.jackson.annotate.JsonIgnoreProperties;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.PUBLIC_ONLY;
 
 
 /**
@@ -49,10 +52,11 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 public class AtlasEntityHeader extends AtlasStruct implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private String             guid                = null;
-    private AtlasEntity.Status status              = AtlasEntity.Status.ACTIVE;
-    private String             displayText         = null;
-    private List<String>       classificationNames = null;
+    private String                    guid                = null;
+    private AtlasEntity.Status        status              = AtlasEntity.Status.ACTIVE;
+    private String                    displayText         = null;
+    private List<String>              classificationNames = null;
+    private List<AtlasClassification> classifications     = null;
 
     public AtlasEntityHeader() {
         this(null, null);
@@ -70,6 +74,7 @@ public class AtlasEntityHeader extends AtlasStruct implements Serializable {
         super(typeName, attributes);
 
         setClassificationNames(null);
+        setClassifications(null);
     }
 
 
@@ -77,6 +82,7 @@ public class AtlasEntityHeader extends AtlasStruct implements Serializable {
         super(typeName, attributes);
         setGuid(guid);
         setClassificationNames(null);
+        setClassifications(null);
     }
 
 
@@ -88,6 +94,7 @@ public class AtlasEntityHeader extends AtlasStruct implements Serializable {
             setStatus(other.getStatus());
             setDisplayText(other.getDisplayText());
             setClassificationNames(other.getClassificationNames());
+            setClassifications(other.getClassifications());
         }
     }
 
@@ -123,6 +130,10 @@ public class AtlasEntityHeader extends AtlasStruct implements Serializable {
         this.classificationNames = classificationNames;
     }
 
+    public List<AtlasClassification> getClassifications() { return classifications; }
+
+    public void setClassifications(List<AtlasClassification> classifications) { this.classifications = classifications; }
+
     @Override
     public StringBuilder toString(StringBuilder sb) {
         if (sb == null) {
@@ -135,8 +146,10 @@ public class AtlasEntityHeader extends AtlasStruct implements Serializable {
         sb.append(", displayText=").append(displayText);
         sb.append(", classificationNames=[");
         dumpObjects(classificationNames, sb);
-        sb.append("],");
-        sb.append(", ");
+        sb.append("], ");
+        sb.append("classifications=[");
+        AtlasBaseTypeDef.dumpObjects(classifications, sb);
+        sb.append("], ");
         super.toString(sb);
         sb.append('}');
 
@@ -152,12 +165,13 @@ public class AtlasEntityHeader extends AtlasStruct implements Serializable {
         return Objects.equals(guid, that.guid) &&
                 status == that.status &&
                 Objects.equals(displayText, that.displayText) &&
-                Objects.equals(classificationNames, that.classificationNames);
+                Objects.equals(classificationNames, that.classificationNames) &&
+                Objects.equals(classifications, that.classifications);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), guid, status, displayText, classificationNames);
+        return Objects.hash(super.hashCode(), guid, status, displayText, classificationNames, classifications);
     }
 
     @Override

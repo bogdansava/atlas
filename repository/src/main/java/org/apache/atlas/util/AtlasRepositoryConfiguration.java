@@ -21,13 +21,9 @@ import org.apache.atlas.ApplicationProperties;
 import org.apache.atlas.AtlasException;
 import org.apache.atlas.repository.audit.EntityAuditRepository;
 import org.apache.atlas.repository.audit.HBaseBasedAuditRepository;
-import org.apache.atlas.repository.graph.DeleteHandler;
-import org.apache.atlas.repository.graph.SoftDeleteHandler;
 import org.apache.atlas.repository.graphdb.GraphDatabase;
 import org.apache.atlas.repository.store.graph.v1.DeleteHandlerV1;
 import org.apache.atlas.repository.store.graph.v1.SoftDeleteHandlerV1;
-import org.apache.atlas.typesystem.types.cache.DefaultTypeCache;
-import org.apache.atlas.typesystem.types.cache.TypeCache;
 import org.apache.commons.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,18 +62,6 @@ public class AtlasRepositoryConfiguration {
         return ApplicationProperties.get().getBoolean(ENABLE_FULLTEXT_SEARCH_PROPERTY, true);
     }
 
-    @SuppressWarnings("unchecked")
-    public static Class<? extends TypeCache> getTypeCache() {
-        // Get the type cache implementation class from Atlas configuration.
-        try {
-            Configuration config = ApplicationProperties.get();
-            return ApplicationProperties.getClass(config, TYPE_CACHE_IMPLEMENTATION_PROPERTY,
-                    DefaultTypeCache.class.getName(), TypeCache.class);
-        } catch (AtlasException e) {
-            LOG.error("Error loading typecache ", e);
-            return DefaultTypeCache.class;
-        }
-    }
     private static final String AUDIT_REPOSITORY_IMPLEMENTATION_PROPERTY = "atlas.EntityAuditRepository.impl";
 
     @SuppressWarnings("unchecked")
@@ -91,19 +75,7 @@ public class AtlasRepositoryConfiguration {
         }
     }
 
-    private static final String DELETE_HANDLER_IMPLEMENTATION_PROPERTY = "atlas.DeleteHandler.impl";
     private static final String DELETE_HANDLER_V1_IMPLEMENTATION_PROPERTY = "atlas.DeleteHandlerV1.impl";
-
-    @SuppressWarnings("unchecked")
-    public static Class<? extends DeleteHandler> getDeleteHandlerImpl() {
-        try {
-            Configuration config = ApplicationProperties.get();
-            return ApplicationProperties.getClass(config,
-                    DELETE_HANDLER_IMPLEMENTATION_PROPERTY, SoftDeleteHandler.class.getName(), DeleteHandler.class);
-        } catch (AtlasException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     public static Class<? extends DeleteHandlerV1> getDeleteHandlerV1Impl() {
         try {
@@ -150,7 +122,7 @@ public class AtlasRepositoryConfiguration {
     }
 
     private static final String GRAPH_DATABASE_IMPLEMENTATION_PROPERTY = "atlas.graphdb.backend";
-    private static final String DEFAULT_GRAPH_DATABASE_IMPLEMENTATION_CLASS = "org.apache.atlas.repository.graphdb.titan0.Titan0GraphDatabase";
+    private static final String DEFAULT_GRAPH_DATABASE_IMPLEMENTATION_CLASS = "org.apache.atlas.repository.graphdb.janus.AtlasJanusGraphDatabase";
 
     @SuppressWarnings("unchecked")
     public static Class<? extends GraphDatabase> getGraphDatabaseImpl() {

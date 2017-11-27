@@ -21,7 +21,9 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.apache.atlas.type.AtlasType;
 import org.janusgraph.core.Cardinality;
+import org.janusgraph.core.JanusGraphFactory;
 import org.janusgraph.core.PropertyKey;
 import org.janusgraph.core.SchemaViolationException;
 import org.janusgraph.core.JanusGraph;
@@ -42,7 +44,6 @@ import org.apache.atlas.repository.graphdb.AtlasVertex;
 import org.apache.atlas.repository.graphdb.GremlinVersion;
 import org.apache.atlas.repository.graphdb.janus.query.AtlasJanusGraphQuery;
 import org.apache.atlas.repository.graphdb.utils.IteratorToIterableAdapter;
-import org.apache.atlas.typesystem.types.IDataType;
 import org.apache.tinkerpop.gremlin.groovy.CompilerCustomizerProvider;
 import org.apache.tinkerpop.gremlin.groovy.DefaultImportCustomizerProvider;
 import org.apache.tinkerpop.gremlin.groovy.jsr223.GremlinGroovyScriptEngine;
@@ -55,6 +56,7 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.io.IoCore;
 import org.apache.tinkerpop.gremlin.structure.io.graphson.GraphSONMapper;
 import org.apache.tinkerpop.gremlin.structure.io.graphson.GraphSONWriter;
+import org.janusgraph.diskstorage.BackendException;
 
 import javax.script.Bindings;
 import javax.script.ScriptEngine;
@@ -277,7 +279,10 @@ public class AtlasJanusGraph implements AtlasGraph<AtlasJanusVertex, AtlasJanusE
             // only a shut down graph can be cleared
             graph.close();
         }
-        JanusGraphCleanup.clear(graph);
+
+        try {
+            JanusGraphFactory.drop(graph);
+        } catch (BackendException ignoreEx) {}
     }
 
     private JanusGraph getGraph() {
@@ -359,13 +364,13 @@ public class AtlasJanusGraph implements AtlasGraph<AtlasJanusVertex, AtlasJanusE
     }
 
     @Override
-    public GroovyExpression generatePersisentToLogicalConversionExpression(GroovyExpression expr, IDataType<?> type) {
+    public GroovyExpression generatePersisentToLogicalConversionExpression(GroovyExpression expr, AtlasType type) {
         //nothing special needed, value is stored in required type
         return expr;
     }
 
     @Override
-    public boolean isPropertyValueConversionNeeded(IDataType<?> type) {
+    public boolean isPropertyValueConversionNeeded(AtlasType type) {
         return false;
     }
 

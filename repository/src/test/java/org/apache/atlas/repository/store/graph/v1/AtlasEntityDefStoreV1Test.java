@@ -17,7 +17,6 @@
  */
 package org.apache.atlas.repository.store.graph.v1;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import org.apache.atlas.ApplicationProperties;
 import org.apache.atlas.AtlasErrorCode;
@@ -26,12 +25,17 @@ import org.apache.atlas.TestModules;
 import org.apache.atlas.exception.AtlasBaseException;
 import org.apache.atlas.model.typedef.AtlasEntityDef;
 import org.apache.atlas.repository.graph.AtlasGraphProvider;
+import org.apache.atlas.runner.LocalSolrRunner;
 import org.apache.atlas.type.AtlasTypeUtil;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Guice;
 import org.testng.annotations.Test;
+
+import java.util.Collections;
+
+import static org.apache.atlas.graph.GraphSandboxUtil.useLocalSolr;
 
 /**
  * Tests for AtlasEntityStoreV1
@@ -46,7 +50,7 @@ public class AtlasEntityDefStoreV1Test {
     @DataProvider
     public Object[][] invalidAttributeNameWithReservedKeywords(){
         AtlasEntityDef invalidAttrNameType =
-            AtlasTypeUtil.createClassTypeDef("Invalid_Attribute_Type", "description", ImmutableSet.<String>of(),
+            AtlasTypeUtil.createClassTypeDef("Invalid_Attribute_Type", "description", Collections.emptySet(),
                 AtlasTypeUtil.createRequiredAttrDef("order", "string"),
                 AtlasTypeUtil.createRequiredAttrDef("limit", "string"));
 
@@ -66,7 +70,11 @@ public class AtlasEntityDefStoreV1Test {
     }
 
     @AfterClass
-    public void clear(){
+    public void clear() throws Exception {
         AtlasGraphProvider.cleanup();
+
+        if (useLocalSolr()) {
+            LocalSolrRunner.stop();
+        }
     }
 }

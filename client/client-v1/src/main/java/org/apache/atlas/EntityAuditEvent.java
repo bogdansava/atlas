@@ -18,15 +18,33 @@
 
 package org.apache.atlas;
 
-import org.apache.atlas.typesystem.IReferenceableInstance;
-import org.apache.atlas.typesystem.json.InstanceSerialization;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import org.apache.atlas.v1.model.instance.Referenceable;
+import org.apache.atlas.type.AtlasType;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
+import java.io.Serializable;
 import java.util.Objects;
+
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.PUBLIC_ONLY;
 
 /**
  * Structure of entity audit event
  */
-public class EntityAuditEvent {
+@JsonAutoDetect(getterVisibility=PUBLIC_ONLY, setterVisibility=PUBLIC_ONLY, fieldVisibility=NONE)
+@JsonSerialize(include=JsonSerialize.Inclusion.ALWAYS)
+@JsonIgnoreProperties(ignoreUnknown=true)
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.PROPERTY)
+public class EntityAuditEvent implements Serializable {
     public enum EntityAuditAction {
         ENTITY_CREATE, ENTITY_UPDATE, ENTITY_DELETE, TAG_ADD, TAG_DELETE, TAG_UPDATE,
         ENTITY_IMPORT_CREATE, ENTITY_IMPORT_UPDATE, ENTITY_IMPORT_DELETE,
@@ -38,13 +56,13 @@ public class EntityAuditEvent {
     private EntityAuditAction action;
     private String details;
     private String eventKey;
-    private IReferenceableInstance entityDefinition;
+    private Referenceable entityDefinition;
 
     public EntityAuditEvent() {
     }
 
     public EntityAuditEvent(String entityId, Long ts, String user, EntityAuditAction action, String details,
-                            IReferenceableInstance entityDefinition) throws AtlasException {
+                            Referenceable entityDefinition) throws AtlasException {
         this.entityId = entityId;
         this.timestamp = ts;
         this.user = user;
@@ -74,11 +92,7 @@ public class EntityAuditEvent {
 
     @Override
     public String toString() {
-        return SerDe.GSON.toJson(this);
-    }
-
-    public static EntityAuditEvent fromString(String eventString) {
-        return SerDe.GSON.fromJson(eventString, EntityAuditEvent.class);
+        return AtlasType.toV1Json(this);
     }
 
     public String getEntityId() {
@@ -129,18 +143,29 @@ public class EntityAuditEvent {
         this.eventKey = eventKey;
     }
 
-    public IReferenceableInstance getEntityDefinition() {
+    public Referenceable getEntityDefinition() {
         return entityDefinition;
     }
 
+    public void setEntityDefinition(Referenceable entityDefinition) {
+        this.entityDefinition = entityDefinition;
+    }
+
+    @JsonIgnore
     public String getEntityDefinitionString() {
         if (entityDefinition != null) {
-            return InstanceSerialization.toJson(entityDefinition, true);
+            return AtlasType.toV1Json(entityDefinition);
         }
         return null;
     }
 
+    @JsonIgnore
     public void setEntityDefinition(String entityDefinition) {
-        this.entityDefinition = InstanceSerialization.fromJsonReferenceable(entityDefinition, true);
+        this.entityDefinition = AtlasType.fromV1Json(entityDefinition, Referenceable.class);
+    }
+
+    @JsonIgnore
+    public static EntityAuditEvent fromString(String eventString) {
+        return AtlasType.fromV1Json(eventString, EntityAuditEvent.class);
     }
 }

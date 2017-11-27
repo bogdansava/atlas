@@ -160,6 +160,10 @@
                     <groupId>javax.servlet</groupId>
                     <artifactId>servlet-api</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.apache.solr</groupId>
+                    <artifactId>solr-core</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
 
@@ -187,6 +191,44 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.solr</groupId>
+            <artifactId>solr-solrj</artifactId>
+            <version>${solr.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.solr</groupId>
+            <artifactId>solr-core</artifactId>
+            <version>${solr.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>*</artifactId>
+                    <groupId>org.eclipse.jetty</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>*</artifactId>
+                    <groupId>org.eclipse.jetty.orbit</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>*</artifactId>
+                    <groupId>org.restlet.jee</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>*</artifactId>
+                    <groupId>org.ow2.asm</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>*</artifactId>
+                    <groupId>org.apache.lucene</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>*</artifactId>
+                    <groupId>org.apache.hadoop</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -211,6 +253,10 @@
                                 <excludes>
                                     <!-- these are bundled with Atlas -->
                                     <exclude>org.slf4j:*</exclude>
+                                    <exclude>com.fasterxml.jackson.core:*</exclude>
+                                    <exclude>com.fasterxml.jackson.dataformat:*</exclude>
+                                    <exclude>com.fasterxml.jackson.databind:*</exclude>
+                                    <exclude>com.fasterxml.jackson.datatype:*</exclude>
                                 </excludes>
                             </artifactSet>
                             <filters>
@@ -220,6 +266,16 @@
                                     <excludes>
                                         <exclude>com/thinkaurelius/titan/diskstorage/locking/LocalLockMediator.class</exclude>
                                         <exclude>com/thinkaurelius/titan/graphdb/query/graph/GraphCentricQueryBuilder.class</exclude>
+                                    </excludes>
+                                </filter>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                        <exclude>org/codehaus/jackson/**</exclude>
+                                        <exclude>com/fasterxml/jackson/**</exclude>
                                     </excludes>
                                 </filter>
                             </filters>
@@ -259,9 +315,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.18.1</version>
+                <version>${surefire.version}</version>
                 <configuration>
-                    <skip>${skipUTs}</skip>
+                    <skip>true</skip>
                 </configuration>
             </plugin>
 
