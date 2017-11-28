@@ -97,7 +97,7 @@
                             <nodeVersion>${node-for-v2.version}</nodeVersion>
                             <nodeDownloadRoot>https://${jenkinsuser}:${jenkinspass}@artifactory.ing.net/artifactory/thirdparty_mvn_vdc/@types/node/</nodeDownloadRoot>
                             <npmVersion>3.8.5</npmVersion>
-                            <npmDownloadRoot>https://${jenkinsuser}:${jenkinspass}@artifactory.ing.net/artifactory/webapp/#/artifacts/browse/tree/General/thirdparty_mvn_vdc/</npmDownloadRoot>
+                            <npmDownloadRoot>https://${jenkinsuser}:${jenkinspass}@artifactory.ing.net/artifactory/thirdparty_mvn_vdc/</npmDownloadRoot>
                         </configuration>
                     </execution>
                     <execution>
