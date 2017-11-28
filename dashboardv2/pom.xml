@@ -95,6 +95,7 @@
                         </goals>
                         <configuration>
                             <nodeVersion>${node-for-v2.version}</nodeVersion>
+                            <nodeDownloadRoot>https://artifactory.ing.net/artifactory/releases_mvn_all</nodeDownloadRoot>
                             <npmVersion>3.8.5</npmVersion>
                         </configuration>
                     </execution>
