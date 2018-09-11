@@ -7766,16 +7766,15 @@ public class LocalAtlasOMRSMetadataCollection extends OMRSMetadataCollection {
         // Add the AtlasClassification to the AtlasEntity
         ArrayList<AtlasClassification> additionalClassifications = new ArrayList<>();
         additionalClassifications.add(atlasClassification);
-        atlasEntity.addClassifications(additionalClassifications);
+
         LOG.debug("classifyEntity: atlasEntity composed with classifications {}", atlasEntity.getClassifications());
 
         // Store in the repo.
         // Construct an AtlasEntityStream and call the repository
-        AtlasEntity.AtlasEntityWithExtInfo atlasEntityWEI = new AtlasEntity.AtlasEntityWithExtInfo(atlasEntity);
+
 
         try {
-
-            entityStore.createOrUpdate(new AtlasEntityStream(atlasEntityWEI), false);
+            entityStore.addClassifications(entityGUID, additionalClassifications);
 
             /* Retrieve the AtlasEntity back from store to pick up any Atlas modifications.
              * Rather than parsing the EMR since it only has AtlasEntityHeaders. So get the entity directly
