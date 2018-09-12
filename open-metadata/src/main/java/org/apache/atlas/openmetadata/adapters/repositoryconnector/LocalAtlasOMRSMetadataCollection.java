@@ -76,6 +76,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -7731,7 +7732,7 @@ public class LocalAtlasOMRSMetadataCollection extends OMRSMetadataCollection {
         if (validEntityDefs != null) {
             boolean match = false;
             for (TypeDefLink vED : validEntityDefs) {
-                if (vED.getName().equals(entityTypeName)) {
+                 if (vED.getName().equals(entityTypeName) || entityType.getTypeDefSuperTypes().stream().map(e -> e.getName()).collect(Collectors.toList()).contains(vED.getName())) {
                     match = true;
                     break;
                 }
